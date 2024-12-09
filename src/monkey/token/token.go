@@ -8,6 +8,18 @@ type Token struct {
 	Literal string
 }
 
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	} 
+	return IDENT
+}
+
+var keywords = map[string]TokenType{ // a collection of all valid keyword types
+	"fn": FUNCTION,
+	"let": LET,
+}
+
 // Types of identifiers that our token will recognise 
 const (
 	// Special tokens 
