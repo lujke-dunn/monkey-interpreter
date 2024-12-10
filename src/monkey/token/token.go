@@ -18,6 +18,11 @@ func LookupIdent(ident string) TokenType {
 var keywords = map[string]TokenType{ // a collection of all valid keyword types
 	"fn": FUNCTION,
 	"let": LET,
+	"true": TRUE,
+	"false": FALSE,
+	"if": IF,
+	"else": ELSE, 
+	"return": RETURN,
 }
 
 // Types of identifiers that our token will recognise 
@@ -36,6 +41,10 @@ const (
 	MINUS = "-"
 	SLASH = "/"
 	BANG = "!"
+	SINGLE_BAR = "|"
+	OR = "||"
+	EQ = "=="
+	NOT_EQ = "!="
 	ASTERISK = "*"
 
 	LT = "<"
@@ -54,4 +63,9 @@ const (
 	// Keywords 
 	FUNCTION = "FUNCTION"
 	LET = "LET"
+	TRUE = "TRUE"
+	FALSE = "FALSE"
+	IF = "IF"
+	ELSE = "ELSE"
+	RETURN = "RETURN"
 )
