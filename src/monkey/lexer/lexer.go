@@ -1,6 +1,7 @@
 package lexer
 
 import (
+
 	"monkey/token"
 )
 
@@ -31,6 +32,15 @@ func (l *Lexer) readChar() { // check current character and increments the count
 	l.position = l.readPosition
 	l.readPosition += 1 // increment to next character
 }
+
+func (l *Lexer) peekChar() byte { // looks ahead by one to check the character ahead. 
+	if l.readPosition >= len(l.input) { // since readposition is +1 char of position we are looking ahead in order to  
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 
 func (l *Lexer) readIdentifier() string { // finds the lexers position and then increments until white space returning where it started and finished 
 	position := l.position
@@ -70,7 +80,14 @@ func (l *Lexer) NextToken() token.Token { // identifies and returns the next tok
 
 	switch l.ch {
 		case '=': 
-			tok = newToken(token.ASSIGN, l.ch)
+			if l.peekChar() == '=' {
+				ch := l.ch
+				l.readChar()
+				literal := string(ch) + string(l.ch)
+				tok = token.Token{Type: token.EQ, Literal: literal}
+			} else {
+				tok = newToken(token.ASSIGN, l.ch)
+			}
 		case '+':
 			tok = newToken(token.PLUS, l.ch)
 		case '(':
@@ -85,10 +102,26 @@ func (l *Lexer) NextToken() token.Token { // identifies and returns the next tok
 			tok = newToken(token.COMMA, l.ch)
 		case ';':
 			tok = newToken(token.SEMICOLON, l.ch)
+		case '|': 
+			if l.peekChar() == '|' {
+				ch := l.ch
+				l.readChar()
+				literal := string(ch) + string(l.ch)
+				tok = token.Token{Type: token.OR, Literal: literal}
+			} else {
+				tok = newToken(token.EOF, l.ch)
+			}
 		case '-':
 			tok = newToken(token.MINUS, l.ch)
 		case '!':
-			tok = newToken(token.BANG, l.ch)
+			if l.peekChar() == '=' {
+				ch := l.ch 
+				l.readChar()
+				literal := string(ch) + string(l.ch)
+				tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+			} else {
+				tok = newToken(token.BANG, l.ch)
+			}
 		case '/':
 			tok = newToken(token.SLASH, l.ch)
 		case '*':
