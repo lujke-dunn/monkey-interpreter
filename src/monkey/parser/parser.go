@@ -80,7 +80,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement { // fetches curren
 	return stmt
 }
  
-func (p *Parser) parseLetStatement() *ast.LetStatement {
+func (p *Parser) parseLetStatement() *ast.LetStatement { 
 	stmt := &ast.LetStatement{Token: p.curToken}
 
 	if !p.expectPeek(token.IDENT) {
@@ -103,11 +103,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	return stmt
 }
 
-func (p *Parser) curTokenIs(t token.TokenType) bool {
+func (p *Parser) curTokenIs(t token.TokenType) bool { // check for current token tupe
 	return p.curToken.Type == t
 }
 
-func (p *Parser) peekTokenIs(t token.TokenType) bool {
+func (p *Parser) peekTokenIs(t token.TokenType) bool { // check next token type
 	return p.peekToken.Type == t
 }
 
