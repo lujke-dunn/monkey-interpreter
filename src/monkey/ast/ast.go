@@ -37,6 +37,9 @@ type Identifier struct {
 	Value string
 }
 
+// TokenLiteral returns the literal value of the token associated with the ExpressionStatement.
+// This is useful for debugging and logging purposes, as it provides the exact string representation
+// of the token.
 func (i *Identifier) expressionNode() {}
 
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
@@ -59,6 +62,8 @@ type Program struct {
 	Statements []Statement
 }
 
+// TokenLiteral returns the literal value of the token associated with the Program. 
+// This is useful for debugging and logging purposes, as it provides the exact string representation
 func (p *Program) tokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
