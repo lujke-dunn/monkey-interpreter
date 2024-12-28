@@ -74,6 +74,19 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
+type IntegerLiteral struct { 
+	Token token.Token
+	Value int64
+}
+
+func (il *IntegerLiteral) expressionNode() {}
+
+func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal}
+
+func (il *IntegerLiteral) String() string {return il.Token.Literal} // used for more human readable code in the test cases
+
+
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -86,6 +99,8 @@ func (i *Identifier) String() string {
 // TokenLiteral returns the literal value of the token associated with the ExpressionStatement.
 // This is useful for debugging and logging purposes, as it provides the exact string representation
 // of the token.
+
+
 func (i *Identifier) expressionNode() {}
 
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
