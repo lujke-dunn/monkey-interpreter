@@ -1,9 +1,10 @@
 package parser
 
 import (
-	"testing"
+	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
+	"testing"
 )
 
 
@@ -100,7 +101,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 			t.Fatalf("program.Statement[0] is not ast.ExpressionStatment got=%T", program.Statements[0])
 		}
 
-		exp, ok := program.Statements[0].(*ast.PrefixExpression) 
+		exp, ok := stmt.Expression.(*ast.PrefixExpression) 
 		if !ok {
 			t.Fatalf("stmt is not ast.PrefixExpression. got=%T", program.Statements[0])
 		}
@@ -113,6 +114,25 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		}
 	}
 }
+
+func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+	integ, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
+		return false
+	}
+
+	if integ.Value != value {
+		t.Errorf("integ.Value not %d. got=%d", value, integ.Value)
+		return false
+	}
+
+	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
+		t.Errorf("integ.TokenLiteral is not %d got=%s", value, integ.TokenLiteral())
+		return false
+	}
+	return true
+} 
 
 func TestIdentifierExpression(t *testing.T) { 
 	input := "foobar;"
