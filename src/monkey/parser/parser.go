@@ -44,9 +44,17 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) { // 
 	p.infixParseFns[tokenType] = fn
 }
 
+
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	p.errors = append(p.errors, msg)
+}
+
+
 func (p *Parser) parseExpression(precedence int) ast.Expression { // checks if there is a parsing function associated with the expression and if not return nil. 
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
+		p.noPrefixParseFnError(p.curToken.Type)
 		return nil
 	}
 	leftExp := prefix()
@@ -80,11 +88,25 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerPrefix(token.BANG, p.parsePrefixExpression)
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
 
 	p.nextToken() // read the next two tokens
 	p.nextToken() 
 
 	return p
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token: p.curToken,
+		Operator: p.curToken.Literal,
+	}
+
+	p.nextToken()
+	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -120,7 +142,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) parseStatement() ast.Statement {
+func (p *Parser) parseStatement() ast.Statement { // takes a statement from the parser and returns a statment and then parses the found statment
 	switch p.curToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
@@ -136,7 +158,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 	stmt.Expression = p.parseExpression(LOWEST)
 
-	if (p.peekTokenIs(token.SEMICOLON)) {
+	if (p.peekTokenIs(token.SEMICOLON)) { 
 		p.nextToken()
 	}
 
@@ -165,7 +187,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	if !p.expectPeek(token.ASSIGN) {
+	if !p.expectPeek(token.ASSIGN) { // no assignment yet returns nil. 
 		return nil 
 	}
 
