@@ -94,7 +94,9 @@ type InfixExpression struct {
  
 func (ie *InfixExpression) expressionNode() {}
 
-func (ie *InfixExpression) TokenLiteral() {}
+func (ie *InfixExpression) TokenLiteral() string { 
+    return ie.Token.Literal 
+}
 
 func (ie *InfixExpression) String() string {
 	var out bytes.Buffer
