@@ -51,7 +51,7 @@ type (
 func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) { // adds a entry into the map infixParseFn
 	p.prefixParseFns[tokenType] = fn
 }
-
+	
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) { // adds a expression to the infix map
 	p.infixParseFns[tokenType] = fn
 }
