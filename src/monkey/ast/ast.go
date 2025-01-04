@@ -1,10 +1,9 @@
 package ast
 
-
 import (
+	"bytes"
 	"monkey/token"
-		"bytes" 
-	)
+)
 
 type LetStatement struct { 
 	Token token.Token
@@ -103,7 +102,7 @@ func (ie *InfixExpression) String() string {
 
 	out.WriteString("(")
 	out.WriteString(ie.Left.String())
-	out.WriteString("" + ie.Operator + "")
+	out.WriteString(" " + ie.Operator + " ")
 	out.WriteString(ie.Right.String())
 	out.WriteString(")")
 
