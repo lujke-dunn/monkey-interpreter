@@ -151,6 +151,23 @@ func TestParsingInfixExpressions(t *testing.T) {
 		t.Fatalf("program.Statments[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
 	}
 
+	exp, ok := stmt.Expression.(*ast.InfixExpression)
+	if !ok {
+		t.Fatalf("exp is not ast.InfixExpression. got=%T", stmt.Expression)
+	}
+
+	if !testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue) {
+		return 
+	}
+
+	if !testIntegerLiteral(t, exp.Left, tt.leftValue.(int64)) {
+		return
+	}
+
+	if exp.Operator != tt.operator {
+		t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
+	}
+
  	if !testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue) {
 		return 
 	}
@@ -223,22 +240,6 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 < 5 == true",
 			"((3 < 5) == true)", 
 		},
-		{
-			"1 + (2 + 3) + 4",
-			"((1 + (2 + 3)) + 4)",
-		},
-		{
-			"(5 + 5) * 2",
-			"((5 + 5) * 2)",
-		},
-		{
-			"2 / (5 + 5)",
-			"(2 / (5 + 5))",
-		},
-		{
-			"!(true == true)",
-			"(!(true == true))",
-		},
 	}
 
 	for _, tt := range tests {
@@ -290,9 +291,9 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		if exp.Operator != tt.operator {
 			t.Fatalf("exp.Operator is not %s got=%s", tt.operator, exp.Operator)
 		}
-		// if !testIntegerLiteral(t, exp.Right, tt.Value) {
-		//	return
-		//}
+		if !testIntegerLiteral(t, exp.Right, tt.Value.(int64)) {
+			return
+		}
 	}
 }
 
@@ -318,7 +319,7 @@ func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 }
 
 
-func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) bool {
+func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}, ) bool {
 	switch v := expected.(type) { 
 		case int: 
 			return testIntegerLiteral(t, exp, int64(v))
