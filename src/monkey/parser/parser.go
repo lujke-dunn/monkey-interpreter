@@ -148,7 +148,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 
 	lit.Parameters = p.parseFunctionParameters()
 
-	if !p.expectPeek(token.RPAREN) { 
+	if !p.expectPeek(token.LBRACE) { 
 		return nil
 	}
 
