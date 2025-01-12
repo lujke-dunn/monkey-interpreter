@@ -294,7 +294,7 @@ type Program struct {
 
 // TokenLiteral returns the literal value of the token associated with the Program. 
 // This is useful for debugging and logging purposes, as it provides the exact string representation
-func (p *Program) tokenLiteral() string {
+func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
 	} else {
