@@ -29,6 +29,7 @@ var precedences = map[token.TokenType]int {
 	token.MINUS: SUM, 
 	token.SLASH: PRODUCT,
 	token.ASTERISK: PRODUCT, 
+	token.LPAREN: CALL, 
 }
 
 
@@ -110,7 +111,7 @@ func New(l *lexer.Lexer) *Parser {
 		l: l,
 		errors: []string{},
 	}
-
+	
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
@@ -126,6 +127,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.EQ, p.parseInfixExpression)
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
@@ -137,6 +139,39 @@ func New(l *lexer.Lexer) *Parser {
 
 	return p
 }
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
+}
+
 
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
@@ -359,6 +394,8 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement { // fetches curren
 
 	p.nextToken()
 
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
 	for !p.curTokenIs(token.SEMICOLON) { // skips over 
 		p.nextToken()
 	}
@@ -375,14 +412,15 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	if !p.expectPeek(token.ASSIGN) { // no assignment yet returns nil. 
+	if !p.expectPeek(token.ASSIGN) {
 		return nil 
 	}
 
-	// skipping until we find a semicolon
+	p.nextToken()
 
-	// find a semicolon!
-	for !p.curTokenIs(token.SEMICOLON) {
+	stmt.Value = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
