@@ -9,7 +9,7 @@ import (
 
 
 func TestEvalIntegerExpression(t *testing.T) {
-	test := []struct {
+	tests := []struct {
 		input string
 		expected int64
 	}{
@@ -25,7 +25,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 
 
-func TestEval(input string) object.Object { 
+func testEval(input string) object.Object { 
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
