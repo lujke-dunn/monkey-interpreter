@@ -5,8 +5,6 @@ import (
 	"monkey/object"
 	"monkey/parser"
 	"testing"
-
-	"golang.org/x/tools/go/expect"
 )
 
 
