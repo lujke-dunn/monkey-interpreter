@@ -5,9 +5,47 @@ import (
 	"monkey/object"
 	"monkey/parser"
 	"testing"
-
-	"golang.org/x/tools/go/expect"
 )
+
+
+func TestReturnStatements(t *testing.T) {
+	tests := []struct {
+		input string
+		expected int64
+	}{
+		{"return 5;", 5 },
+		{"return 2 * 5;", 10},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input string
+		expectedMessage string
+	}{
+
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		errObj, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Errorf("no error object returned. got=%T(%+v)", evaluated, evaluated)
+			continue
+		}
+
+		if errObj.Message != tt.expectedMessage {
+			t.Errorf("wrong error message. expected=%q, got=%q", tt.expectedMessage, errObj.Message)
+		}
+
+	}
+}
 
 
 func TestEvalIntegerExpression(t *testing.T) {
