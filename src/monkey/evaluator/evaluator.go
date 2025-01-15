@@ -77,7 +77,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	return nil
 }
 
-func evalExpression(node ast.Node, env *object.Environment) []object.Object {
+func evalExpression(exps []ast.Expression, env *object.Environment) []object.Object {
 	var result []object.Object
 
 	for _, e := range exps {
