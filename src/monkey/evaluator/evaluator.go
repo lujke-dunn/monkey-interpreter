@@ -6,12 +6,16 @@ import (
 	"monkey/object"
 )
 
+
+// boolean values  
+
 var (
 	NULL  = &object.NULL{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
 
+// switches between availale statments in order to intepret 
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 
