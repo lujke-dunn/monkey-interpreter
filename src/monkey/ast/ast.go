@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-
+// let statement for AST
 
 type LetStatement struct { 
 	Token token.Token
