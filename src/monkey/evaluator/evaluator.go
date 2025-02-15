@@ -32,6 +32,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+	case *ast.StringLiteral: 
+		return &object.String{Value: node.Value}
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
 		if isError(val) {
