@@ -35,6 +35,10 @@ const (
     IDENT = "IDENT" // Variable names x, y, z 
 	INT = "INT" // Numbers: 12345
 
+	// types
+	STRING = "STRING"
+
+
 	// Operators 
 	ASSIGN = "="
 	PLUS = "+" 
