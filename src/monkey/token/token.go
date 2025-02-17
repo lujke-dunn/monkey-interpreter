@@ -38,6 +38,8 @@ const (
 	// types
 	STRING = "STRING"
 
+	LBRACKET = "["
+	RBRACKET = "]"
 
 	// Operators 
 	ASSIGN = "="
