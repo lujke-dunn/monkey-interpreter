@@ -16,6 +16,7 @@ const (
 	STRING_OBJ = "STRING"
 	ERROR_OBJ = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
+	ARRAY_OBJ = "ARRAY"
 )
 
 type ObjectType string
@@ -25,6 +26,31 @@ type Object interface {
 	Inspect() string
 } 
 
+
+type Array struct {
+	Elements []Object
+}
+
+func (ao *Array) Type() ObjectType { 
+	return ARRAY_OBJ 
+}
+
+func (ao *Array) Inspect() string {
+	
+	elements := []string{}
+
+	for _, e := range ao.Elements {
+		elements = append(elements, e.Inspect())
+	}
+	
+	var out bytes.Buffer
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 type BuiltinFunction func(args ...Object) Object
 

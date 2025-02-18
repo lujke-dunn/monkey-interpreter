@@ -30,6 +30,7 @@ var precedences = map[token.TokenType]int {
 	token.SLASH: PRODUCT,
 	token.ASTERISK: PRODUCT, 
 	token.LPAREN: CALL, 
+	token.LBRACKET: INDEX, 
 }
 
 
@@ -38,10 +39,11 @@ const (
 	LOWEST
 	EQUALS // == 
 	LESSGREATER // > or < 
-	SUM // + 
+	SUM // +
 	PRODUCT // *
 	PREFIX // ++a or --b 
 	CALL // function calls
+	INDEX // array[index]
 )
 
 type (
@@ -113,6 +115,7 @@ func New(l *lexer.Lexer) *Parser {
 	}
 	
 
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
@@ -122,10 +125,10 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.TRUE, p.parseBoolean)
 	p.registerPrefix(token.FALSE, p.parseBoolean)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
+	p.registerInfix(token.RBRACKET, p.parseIndexExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.IF, p.parseIfExpression)
-	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
 	p.registerInfix(token.SLASH, p.parseInfixExpression)
@@ -141,6 +144,19 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken() 
 
 	return p
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return exp
 }
 
 func (p *Parser) parseArrayLiteral() ast.Expression {

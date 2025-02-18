@@ -73,13 +73,21 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(function) { 
 			return function 
 		}
-		args := evalExpression(node.Arguments, env) 
+		args := evalExpressions(node.Arguments, env) 
 		if len(args) == 1 && isError(args[0]) {
 			return args[0]
 		}
 		return applyFunction(function, args)
-	}
 
+	case *ast.ArrayLiteral: 
+		elements := evalExpressions(node.Elements, env)
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
+
+
+	}
 	return nil
 }
 
@@ -123,6 +131,23 @@ func evalExpression(exps []ast.Expression, env *object.Environment) []object.Obj
 		if isError(evaluated) {
 			return []object.Object{evaluated}
 		}
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
+
+func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+
+		if isError(evaluated){
+			return []object.Object{evaluated}
+		}
+
 		result = append(result, evaluated)
 	}
 
