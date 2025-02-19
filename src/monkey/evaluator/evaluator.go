@@ -10,7 +10,7 @@ import (
 // boolean values  
 
 var (
-	NULL  = &object.NULL{}
+	NULL  = &object.Null{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
@@ -39,7 +39,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		env.Set(node.Name.Value, val) 
+		env.Set(node.Name.Value, val)
 		return val                    
 	case *ast.Identifier:
 		return evalIdentifier(node, env) 
@@ -67,7 +67,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
-
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
 	case *ast.CallExpression: 
 		function := Eval(node.Function, env)
 		if isError(function) { 
@@ -85,11 +94,38 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
-
-
 	}
 	return nil
 }
+
+
+func evalIndexExpression(left, index object.Object) object.Object {
+    fmt.Printf("DEBUG: left type = %T\n", left)
+    fmt.Printf("DEBUG: left value = %+v\n", left)
+    fmt.Printf("DEBUG: index type = %T\n", index)
+    fmt.Printf("DEBUG: index value = %+v\n", index)
+    
+    switch {
+    case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+        arrayObject := left.(*object.Array)
+        idx := index.(*object.Integer).Value
+        max := int64(len(arrayObject.Elements) - 1)
+        
+        fmt.Printf("DEBUG: array elements = %+v\n", arrayObject.Elements)
+        fmt.Printf("DEBUG: accessing index %d\n", idx)
+        
+        if idx < 0 || idx > max {
+            return NULL
+        }
+        element := arrayObject.Elements[idx]
+        fmt.Printf("DEBUG: returning element type = %T\n", element)
+        return element
+    default:
+        return newError("index operator not supported: %s", left.Type())
+    }
+}
+
+
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	switch fn := fn.(type) {
