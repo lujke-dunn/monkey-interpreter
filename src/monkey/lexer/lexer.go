@@ -121,6 +121,8 @@ func (l *Lexer) NextToken() token.Token { // identifies and returns the next tok
 			tok = newToken(token.COMMA, l.ch)
 		case ';':
 			tok = newToken(token.SEMICOLON, l.ch)
+		case ':':
+			tok = newToken(token.COLON, l.ch)
 		case '|': 
 			if l.peekChar() == '|' {
 				ch := l.ch

@@ -55,6 +55,7 @@ const (
 
 	LT = "<"
 	GT = ">"
+	COLON = ":"
 
 	// Delimiters
 	COMMA = ","
