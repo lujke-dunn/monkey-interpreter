@@ -40,7 +40,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		env.Set(node.Name.Value, val)
-		return val                    
+		return val 
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env) 
 	case *ast.FunctionLiteral: 
@@ -99,11 +101,32 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 }
 
 
+func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, env)
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("unusable as hash key: %s", key.Type())
+		}
+
+		value := Eval(valueNode, env)
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+		pairs[hashed] = object.HashPair{Key: key, Value: value}
+	}
+	return &object.Hash{Pairs: pairs}
+}
+
 func evalIndexExpression(left, index object.Object) object.Object {
-    fmt.Printf("DEBUG: left type = %T\n", left)
-    fmt.Printf("DEBUG: left value = %+v\n", left)
-    fmt.Printf("DEBUG: index type = %T\n", index)
-    fmt.Printf("DEBUG: index value = %+v\n", index)
     
     switch {
     case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
@@ -111,14 +134,11 @@ func evalIndexExpression(left, index object.Object) object.Object {
         idx := index.(*object.Integer).Value
         max := int64(len(arrayObject.Elements) - 1)
         
-        fmt.Printf("DEBUG: array elements = %+v\n", arrayObject.Elements)
-        fmt.Printf("DEBUG: accessing index %d\n", idx)
         
         if idx < 0 || idx > max {
             return NULL
         }
         element := arrayObject.Elements[idx]
-        fmt.Printf("DEBUG: returning element type = %T\n", element)
         return element
     default:
         return newError("index operator not supported: %s", left.Type())
