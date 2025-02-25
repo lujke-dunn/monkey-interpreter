@@ -34,6 +34,11 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("jhin")`, 4},
 		{`len(1)`, "argument to `len` not supported, got=INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`random()`, "wrong number of arguments. got=0, want=1"},
+		{`random("abc")`, "argument to `random` not supported, got=STRING"},
+		{`random(true)`, "argument to `random` not supported, got=BOOLEAN"},
+		{`random(0)`, "argument to `random` must be a positive integer, got=0"},
+		{`random(-6)`, "argument to `random` must be a positive integer, got=-6"},
 	}
 
 	for _, tt := range tests {

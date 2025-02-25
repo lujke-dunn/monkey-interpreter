@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"monkey/object"
+	"math/rand"
 )
 
 
@@ -101,6 +102,24 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			return NULL
+		},
+	},
+	"random": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
+			}
+
+			switch arg := args[0].(type) {
+			case *object.Integer:
+				if arg.Value <= 0 {
+					return newError("argument to `random` must be a positive integer, got=%d", arg.Value);
+				}
+				randomValue := rand.Intn(int(arg.Value))
+				return &object.Integer{Value: int64(randomValue)}
+			default:
+				return newError("argument to `random` not supported, got=%s", args[0].Type())
+			}
 		},
 	},
 }
