@@ -130,10 +130,10 @@ func TestArrayReduceMethod(t *testing.T) {
 		evaluated := testEval(tt.input)
 
 		switch expected := tt.expected.(type) {
-			case []int:
-				testIntegerArray(t, evaluated, expected)
-			case []string:
-				testStringArray(t, evaluated, expected)
+			case int:
+				testIntegerObject(t, evaluated, int64(expected))
+			case string:
+				testStringObject(t, evaluated, expected)
 		}
 	}
 
