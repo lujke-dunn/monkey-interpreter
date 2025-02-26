@@ -60,6 +60,86 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 }
 
+func TestArrayMapMethod(t *testing.T) {
+	tests := []struct {
+		input string 
+		expected interface{}
+	}{
+		{`[1, 2, 3].map(fn(x) { x * 4 })`, []int{2, 4, 6}},
+		{`[1, 2, 3].map(fn(x) { x })`, []int{1, 2, 3}},
+		{`[1, 2, 3].map(fn(x) { x * x})`, []int{1, 4, 9}},
+		{`[].map(fn(x) { x })`, []int{}},
+		{`["a", "b", "c"].map(fn(x) { x + "!" })`, []string{"a!", "b!", "c!"}},
+		{`["hello", "world"].map(fn(x) { len(x) })`, []int{5, 5}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case []int:
+				testIntegerArray(t, evaluated, expected)
+		case []string:
+				testStringArray(t, evaluated, expected)
+		}
+	}
+}
+
+
+func TestArrayFilterMethod(t *testing.T) {
+	tests := []struct {
+		input string
+		expected interface{}
+	}{
+		{`[1, 2, 3, 4].filter(fn(x) { x > 2 })`, []int{3, 4}},
+		{`[1, 2, 3, 4].filter(fn(x) { x < 3 })`, []int{1, 2}},
+		{`["a", "ab", "abc"].filter(fn(x) { len(x) > 1 })`, []string{"ab", "abc"}},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) { 
+			case []int:
+				testIntegerArray(t, evaluated, expected)
+			case []string: 
+				testStringArray(t, evaluated, expected)
+		}
+	}
+}
+
+
+func TestArrayReduceMethod(t *testing.T) { 
+	tests := []struct {
+		input string
+		expected interface{}
+	}{ 
+		{`[1,2,3,4].reduce(fn(acc, x) { acc + x }, 0)`, 6},
+		{`[].reduce(fn(acc, x) {acc + x}, 5)`, 5},
+		{`[1, 2, 3].reduce(fn(acc, x) { acc * x }, 1)`, 6},
+		{`["Josh", "Luke", "Nath"].reduce(fn(acc, name) {
+			if (acc == "") {
+				name
+			} else {
+				acc + ", " + name
+			}
+		}, "")`, "Josh, Luke, Nath"},
+		{`["h","e","l","l","o"].reduce(fn(acc, x) { acc + x }, "")`, "hello"},
+		{`["a", "b", "c"].reduce(fn(acc, x) { x + acc }, "")`, "cba"},
+	}
+	
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+			case []int:
+				testIntegerArray(t, evaluated, expected)
+			case []string:
+				testStringArray(t, evaluated, expected)
+		}
+	}
+
+
+}
+
 
 func TestArrayIndexExpressions(t *testing.T) {
 	tests := []struct {
@@ -326,6 +406,24 @@ func testEval(input string) object.Object {
 	return Eval(program, env)
 }
 
+
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object is not String. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("String has wrong value. expected=%q, got=%q", expected, result.Value)
+		return false
+	}
+
+	return true
+}
+
+
+
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	result, ok := obj.(*object.Integer)
 
@@ -357,6 +455,53 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 
 	return true
 }
+
+func testIntegerArray(t *testing.T, obj object.Object, expected []int) bool {
+	array, ok := obj.(*object.Array)
+
+	if !ok {
+		t.Errorf("object is not Array. got=%T, (%+v)", obj, obj)
+		return false
+	}
+
+	if len(array.Elements) != len(expected) {
+		t.Errorf("wrong array length. expected=%d, got=%d", len(expected), len(array.Elements))
+		return false
+	}
+
+	for i, expectedElement := range expected {
+		 if !testIntegerObject(t, array.Elements[i], int64(expectedElement)) {
+			 return false
+		 }
+	}
+
+	return true
+}
+
+
+// i love repeating myself might turn this into a switch statement inside this later as a refactor
+
+func testStringArray(t *testing.T, obj object.Object, expected []string) bool {
+	array, ok := obj.(*object.Array)
+	if !ok {
+		t.Errorf("Object not an Array. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if len(array.Elements) != len(expected) {
+		t.Errorf("wrong array length. expected=%d, got=%d", len(expected), len(array.Elements))
+		return false
+	}
+
+	for i, expectedElement := range expected {
+		if !testStringObject(t, array.Elements[i], expectedElement) {
+			return false
+		}
+	}
+
+	return true
+}
+
 
 
 func TestHashLiterals(t *testing.T)  {
