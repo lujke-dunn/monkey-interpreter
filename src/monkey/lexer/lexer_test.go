@@ -30,9 +30,14 @@ if (5 < 10) {
 10 != 9;
 
 "foo bar"
+
 "foo bar"
+
 [1, 2];
+
 {"foo" : "bar"}
+
+[1, 2, 3].map()
 `
 
 	tests := []struct {
@@ -123,6 +128,17 @@ if (5 < 10) {
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
 		{token.RBRACE, "}"},
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.COMMA,","},
+		{token.INT, "3"},
+		{token.RBRACKET, "]"},
+		{token.DOT, "."},
+		{token.IDENT, "map"},
+		{token.LPAREN, "("},
+		{token.RPAREN, ")"},
 		{token.EOF, ""},
 	}
  

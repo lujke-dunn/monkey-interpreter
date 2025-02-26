@@ -151,6 +151,8 @@ func (l *Lexer) NextToken() token.Token { // identifies and returns the next tok
 			tok = newToken(token.LT, l.ch)
 		case '>':
 			tok = newToken(token.GT, l.ch) 
+		case '.':
+			tok = newToken(token.DOT, l.ch)
 		case 0:
 			tok.Literal = ""
 			tok.Type = token.EOF

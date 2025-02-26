@@ -31,6 +31,7 @@ var precedences = map[token.TokenType]int {
 	token.ASTERISK: PRODUCT, 
 	token.LPAREN: CALL, 
 	token.LBRACKET: INDEX, 
+	token.DOT: CALL,
 }
 
 
@@ -139,6 +140,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.DOT,  p.parseCallMethodExpression)
 
 
 	p.nextToken() // read the next two tokens
@@ -146,6 +148,28 @@ func New(l *lexer.Lexer) *Parser {
 
 	return p
 }
+
+func (p *Parser) parseCallMethodExpression(object ast.Expression) ast.Expression {
+	exp := &ast.MethodCallExpression{
+		Token: p.curToken,
+		Object: object,
+	}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+
+	exp.Method = p.curToken.Literal
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
+
+	return exp
+}
+
 
 func (p *Parser) parseHashLiteral() ast.Expression {
 	hash := &ast.HashLiteral{Token: p.curToken}

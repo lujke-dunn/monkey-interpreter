@@ -7,6 +7,58 @@ import (
 	"testing"
 )
 
+func TestDotOperatorParsing(t *testing.T) {
+	input := `[1, 2, 3].map(fn(x) {x * 2});`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statment got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatment. got=%T", program.Statements[0])
+	}
+
+	methodCall, ok := stmt.Expression.(*ast.MethodCallExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not an ast.MethodCallExpression. got=%T", stmt.Expression)
+	}
+
+	if methodCall.Method != "map" {
+		t.Fatalf("methodCall.Method not 'map', got=%q", methodCall.Method)
+	}
+
+	array, ok := methodCall.Object.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("methodCall.Object is not an ast.ArrayLiteral. got=%T", methodCall.Object)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Fatalf("array has wrong number of elements. got=%d", len(array.Elements))
+	}
+
+	if len(methodCall.Arguments) != 1 {
+		t.Fatalf("wrong number of arguments. got=%d", len(methodCall.Arguments))
+	}
+
+	function, ok := methodCall.Arguments[0].(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("argument is not an ast.FunctionLiteral. got=%T", methodCall.Arguments[0])
+	}
+
+	if len(function.Parameters) != 1 {
+		t.Fatalf("function literal has wrong parameters. got=%d", len(function.Parameters))
+	}
+
+	if function.Parameters[0].Value != "x" { 
+		t.Fatalf("parameter is not x. got=%q", function.Parameters[0].Value)
+	}
+}
 
 func TestReturnStatements(t *testing.T) {
 	input := `

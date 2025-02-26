@@ -52,7 +52,7 @@ const (
 	EQ = "=="
 	NOT_EQ = "!="
 	ASTERISK = "*"
-
+	DOT = "."
 	LT = "<"
 	GT = ">"
 	COLON = ":"

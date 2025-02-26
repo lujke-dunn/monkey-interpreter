@@ -233,6 +233,36 @@ func (ce *CallExpression) String() string {
 }
 
 
+type MethodCallExpression struct {
+	Token token.Token
+	Object Expression
+	Method string
+	Arguments []Expression
+}
+
+func (mc *MethodCallExpression) expressionNode() {}
+
+func (mc *MethodCallExpression) TokenLiteral() string { return mc.Token.Literal }
+
+func (mc *MethodCallExpression) String() string {
+	var out bytes.Buffer
+	args := []string{}
+
+	for _, a := range mc.Arguments {
+		args = append(args, a.String())
+	}
+
+	out.WriteString(mc.Object.String())
+	out.WriteString(".")
+	out.WriteString(mc.Method)
+	out.WriteString("(")
+	out.WriteString(strings.Join(args, ", "))
+	out.WriteString(")")
+
+	return out.String()
+}
+
+
 type BlockStatement struct {
 	Token token.Token
 	Statements []Statement
