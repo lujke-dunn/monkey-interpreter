@@ -89,7 +89,31 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.MethodCallExpression:
+		object := Eval(node.Object, env)
+		if isError(object) {
+			return object
+		}
+		args := evalExpression(node.Arguments, env)
+		if len(args) > 0 && isError(args[0]) {
+			return args[0]
+		}
+	switch object.Type() {
+		case object.ARRAY_OBJ:
+			array := object.(*object.Array)
+			switch node.Method {
+				case "map":
+					return evalArrayMap(array, args)
+				case "filter": 
+			  	return evalArrayFilter(array, args)
+				case "reduce": 
+					return evalArrayReduce(array, args)
+				default:
+					return newError("array has no method '%s'", node.Method)
+				}
+			}
 
+		return newError("array has no method '%s'", node.Method)
 	case *ast.ArrayLiteral: 
 		elements := evalExpressions(node.Elements, env)
 		if len(elements) == 1 && isError(elements[0]) {
@@ -98,6 +122,79 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Array{Elements: elements}
 	}
 	return nil
+}
+
+
+func evalArrayMap(array *object.Array, args []object.Object) object.Object {
+    if len(args) != 1 {
+        return newError("wrong number of arguments. got=%d, want=1", len(args))
+    }
+    
+    fn, ok := args[0].(*object.Function)
+    if !ok {
+        return newError("argument to `map` must be FUNCTION, got=%s", args[0].Type())
+    }
+    
+    newElements := make([]object.Object, 0, len(array.Elements))
+    
+    for _, elem := range array.Elements {
+        mappedElem := applyFunction(fn, []object.Object{elem})
+        if isError(mappedElem) {
+            return mappedElem
+        }
+        newElements = append(newElements, mappedElem)
+    }
+    
+    return &object.Array{Elements: newElements}
+}
+
+func evalArrayFilter(array *object.Array, args []object.Object) object.Object {
+    if len(args) != 1 {
+        return newError("wrong number of arguments. got=%d, want=1", len(args))
+    }
+    
+    fn, ok := args[0].(*object.Function)
+    if !ok {
+        return newError("argument to `filter` must be FUNCTION, got=%s", args[0].Type())
+    }
+    
+    newElements := make([]object.Object, 0)
+    
+    for _, elem := range array.Elements {
+        condition := applyFunction(fn, []object.Object{elem})
+        if isError(condition) {
+            return condition
+        }
+        
+        if isTruthy(condition) {
+            newElements = append(newElements, elem)
+        }
+    }
+    
+    return &object.Array{Elements: newElements}
+}
+
+func evalArrayReduce(array *object.Array, args []object.Object) object.Object {
+    if len(args) != 2 {
+        return newError("wrong number of arguments. got=%d, want=2", len(args))
+    }
+    
+    fn, ok := args[0].(*object.Function)
+    if !ok {
+        return newError("first argument to `reduce` must be FUNCTION, got=%s", args[0].Type())
+    }
+    
+    // Initial value
+    accumulator := args[1]
+    
+    for _, elem := range array.Elements {
+        accumulator = applyFunction(fn, []object.Object{accumulator, elem})
+        if isError(accumulator) {
+            return accumulator
+        }
+    }
+    
+    return accumulator
 }
 
 
