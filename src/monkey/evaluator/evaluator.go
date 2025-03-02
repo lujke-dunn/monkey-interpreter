@@ -96,8 +96,38 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
+	
+	case *ast.WhileExpression:
+		return evalWhileExpression(node, env)
 	}
 	return nil
+}
+
+func evalWhileExpression(node *ast.WhileExpression, env *object.Environment) object.Object {
+	var result object.Object = NULL
+
+	condition := Eval(node.Condition, env)
+	if isError(condition) {
+		return condition 
+	}
+
+	for isTruthy(condition) {
+		result = Eval(node.Body, env)
+
+		if result != nil {
+			rt := result.Type()
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+		}
+
+		condition = Eval(node.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+	}
+	
+	return result 
 }
 
 
