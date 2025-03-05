@@ -24,6 +24,32 @@ func TestReturnStatements(t *testing.T) {
 }
 
 
+func TestWhileExpression(t *testing.T) {
+	tests := []struct {
+		input string
+		expected interface{}
+	}{
+		{
+			"let x = 0; while (x < 5) { let x = x + 1; }; x;",
+			5, 
+		},
+		{
+			"let a = 0; while (a < 10) { let a = a + 1; if (a == 5) { return a; }; }; 10;",
+			5, 
+		},
+		{
+			"let a = 0; let b = 0; while (a < 3) { let a = a + 1; let b = b + a; }; b;",
+			6,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, int64(tt.expected.(int)))
+	}
+}
+
+
 func TestBuiltinFunctions(t *testing.T) {
 	tests := []struct {
 		input string
