@@ -7,6 +7,47 @@ import (
 )
 
 
+type ForExpression struct {
+	Token token.Token
+	Init Statement
+	Condition Expression
+	Update Expression 
+	Body *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode() {}
+
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for")
+	out.WriteString(" (")
+
+	if fe.Init != nil {
+		out.WriteString(fe.Init.String())
+	}
+
+	out.WriteString("; ")
+
+	if fe.Condition != nil {
+		out.WriteString(fe.Condition.String())
+	}
+	
+	out.WriteString("; ")
+
+	if fe.Update != nil {
+		out.WriteString(fe.Update.String())
+	}
+
+	out.WriteString(") ")
+	out.WriteString(fe.Body.String())
+
+	return out.String()
+}
+
+
 type StringLiteral struct { 
 	Token token.Token
 	Value string
@@ -55,7 +96,7 @@ func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
 func (ls *LetStatement) String() string { // This is writing and retrieving the total let statement expression here 
 	var out bytes.Buffer
 
-	out.WriteString(ls.TokenLiteral() + "  ")
+	out.WriteString(ls.TokenLiteral() + " ")
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
 	

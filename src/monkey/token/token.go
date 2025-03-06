@@ -24,6 +24,7 @@ var keywords = map[string]TokenType{ // a collection of all valid keyword types
 	"else": ELSE, 
 	"return": RETURN,
 	"while": WHILE,
+	"for": FOR, 
 }
 
 // Types of identifiers that our token will recognise 
@@ -38,6 +39,7 @@ const (
 
 	// types
 	STRING = "STRING"
+	
 
 	LBRACKET = "["
 	RBRACKET = "]"
@@ -71,6 +73,7 @@ const (
 	// Keywords 
 	FUNCTION = "FUNCTION"
 	WHILE = "WHILE"
+	FOR = "FOR"
 	LET = "LET"
 	TRUE = "TRUE"
 	FALSE = "FALSE"
