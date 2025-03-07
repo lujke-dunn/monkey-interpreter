@@ -25,6 +25,8 @@ var keywords = map[string]TokenType{ // a collection of all valid keyword types
 	"return": RETURN,
 	"while": WHILE,
 	"for": FOR, 
+	"break": BREAK,
+	"continue": CONTINUE, 
 }
 
 // Types of identifiers that our token will recognise 
@@ -80,4 +82,6 @@ const (
 	IF = "IF"
 	ELSE = "ELSE"
 	RETURN = "RETURN"
+	BREAK = "BREAK"
+	CONTINUE = "CONTINUE"
 )

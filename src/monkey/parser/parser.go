@@ -597,6 +597,10 @@ func (p *Parser) parseStatement() ast.Statement { // takes a statement from the 
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.BREAK:
+		return &ast.BreakStatement{ Token: p.curToken }
+	case token.CONTINUE:
+		return &ast.ContinueStatement{ Token: p.curToken }
 	default:
 		return p.parseExpressionStatement()
 	}
