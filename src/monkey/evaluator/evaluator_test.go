@@ -114,19 +114,6 @@ func TestForLoopEvaluation(t *testing.T) {
 		},
 		{
 			`
-			let sum = 0; 
-			let i = 0;
-			for (;;) {
-				if (i >= 5) {
-					break;
-				}
-			}
-			sum;
-			`,
-			10, 
-		},
-		{
-			`
 			let sum = 0;
 			for (let i = 0; i < 3; i = i + 1) {
 				for (let j = 0; j < 2; j = j + 1) {
@@ -190,7 +177,7 @@ func TestBreakStatements(t *testing.T) {
 		result; 
 		`,
 		5, 
-		}
+		},
 	}
 
 	for i, tt := range tests {

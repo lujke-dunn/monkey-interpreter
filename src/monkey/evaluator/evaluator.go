@@ -7,12 +7,13 @@ import (
 )
 
 
-// boolean values  
 
 var (
 	NULL  = &object.Null{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
+	BREAK = &object.Break{}
+	CONTINUE = &object.Continue{}
 )
 
 // switches between availale statments in order to intepret 
@@ -99,8 +100,76 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	
 	case *ast.WhileExpression:
 		return evalWhileExpression(node, env)
+	case *ast.ForExpression: 
+		return evalForExpression(node, env)
+	case *ast.BreakStatement:
+		return BREAK
+	case *ast.ContinueStatement:
+		return CONTINUE
 	}
 	return nil
+}
+
+func evalForExpression(fe *ast.ForExpression, env *object.Environment) object.Object {
+	loopEnv := object.NewEnclosedEnvironment(env)
+
+	if fe.Init != nil {
+		switch init := fe.Init.(type) { 
+			case *ast.LetStatement:
+				val := Eval(init.Value, loopEnv)
+				if isError(val) {
+					return val
+				}
+
+				loopEnv.Set(init.Name.Value, val)
+			case *ast.ExpressionStatement: 
+				val := Eval(init.Expression, loopEnv)
+				if isError(val) {
+					return val
+				}
+		}
+	}
+
+	for {
+		if fe.Condition != nil {
+			condition := Eval(fe.Condition, loopEnv)
+			if isError(condition) {
+				return condition
+			}
+
+			if !isTruthy(condition) {
+				break
+			}
+		}
+	
+
+	result := Eval(fe.Body, loopEnv)
+	if isError(result) {
+		return result
+	}
+
+	if result != nil {
+		rt := result.Type()
+		if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			return result
+		}
+		if rt == object.BREAK_OBJ {
+			break
+		}
+		if rt == object.CONTINUE_OBJ {
+			goto Update 
+		}
+	}
+
+	Update: 
+		if fe.Update != nil {
+			updateResult := Eval(fe.Update, loopEnv)
+			if isError(updateResult) {
+				return updateResult
+			}
+		}
+	}
+		return NULL
 }
 
 func evalWhileExpression(node *ast.WhileExpression, env *object.Environment) object.Object {
@@ -118,6 +187,16 @@ func evalWhileExpression(node *ast.WhileExpression, env *object.Environment) obj
 			rt := result.Type()
 			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
 				return result
+			}
+			if rt == object.BREAK_OBJ {
+				return NULL
+			}
+			if rt == object.CONTINUE_OBJ {
+				condition = Eval(node.Condition, env)
+				if isError(condition) {
+					return condition
+				}
+				continue
 			}
 		}
 
@@ -425,7 +504,7 @@ func evalBlockStatement(statements *ast.BlockStatement, env *object.Environment)
 
 		if result != nil {
 			rt := result.Type()
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_OBJ || rt == object.CONTINUE_OBJ {
 				return result
 			}
 		}

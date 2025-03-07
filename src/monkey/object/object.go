@@ -19,6 +19,8 @@ const (
 	ERROR_OBJ = "ERROR"
 	FUNCTION_OBJ = "FUNCTION"
 	ARRAY_OBJ = "ARRAY"
+	BREAK_OBJ = "BREAK"
+	CONTINUE_OBJ = "CONTINUE"
 )
 
 type ObjectType string
@@ -28,6 +30,18 @@ type Object interface {
 	Inspect() string
 } 
 
+
+type Break struct{}
+
+func (bs *Break) Type() ObjectType { return BREAK_OBJ }
+
+func (bs *Break) Inspect() string { return "break" }
+
+type Continue struct{}
+
+func (c *Continue) Type() ObjectType { return CONTINUE_OBJ }
+
+func (c *Continue) Inspect() string { return "continue" }
 
 type Array struct {
 	Elements []Object
