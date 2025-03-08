@@ -5,6 +5,7 @@ import (
 	"monkey/ast"
 	"monkey/lexer"
 	"testing"
+	"strings"
 )
 
 
@@ -35,7 +36,7 @@ func TestAssignmentExpression(t *testing.T) {
 			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
 		}
 
-		assignment, ok := stmt.Expression.(*ast.TestAssignmentExpression)
+		assignment, ok := stmt.Expression.(*ast.AssignmentExpression)
 		if !ok {
 			t.Fatalf("stmt.Expression is not ast.AssignmentExpression. got=%T", stmt.Expression)
 		}
@@ -43,7 +44,7 @@ func TestAssignmentExpression(t *testing.T) {
 		if assignment.Name.Value != tt.expectedIdentifier {
 			t.Errorf("assignment.Name.Value not '%s' got=%s", tt.expectedIdentifier, assignment.Name.Value)
 		}
-	}
+	
 	
 	valueStr := assignment.Value.String()
 	var expectedValueStr string 
@@ -57,11 +58,10 @@ func TestAssignmentExpression(t *testing.T) {
 		expectedValueStr = v
 	}
 
-	if !strings.Contain(valueStr, expectedValueStr) {
+	if !strings.Contains(valueStr, expectedValueStr) {
 		t.Errorf("assignment.Value.String() not containing '%s'. got=%s",  expectedValueStr, valueStr)
 	}
-
-
+ }
 }
 
 func TestForLoopParsing(t *testing.T) {

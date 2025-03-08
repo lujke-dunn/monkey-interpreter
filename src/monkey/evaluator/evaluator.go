@@ -60,6 +60,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		return evalPrefixExpression(node.Operator, right)
+	case *ast.AssignmentExpression: 
+		val := Eval(node.Value, env)
+		if isError(val) {
+			return val
+		}
+
+		if _, ok := env.Get(node.Name.Value); !ok {
+			return newError("identifier not found: " + node.Name.Value)
+		}
+		env.Set(node.Name.Value, val)
+		return val 
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
