@@ -95,7 +95,7 @@ func TestForLoopEvaluation(t *testing.T) {
 			`
 			let sum = 0;
 			for (let i = 0; i < 5; i = i + 1) {
-				sum = sum + i; 
+				let sum = sum + i; 
 			}
 			sum; 
 			`,

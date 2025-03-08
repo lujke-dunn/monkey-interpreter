@@ -7,6 +7,63 @@ import (
 	"testing"
 )
 
+
+func TestAssignmentExpression(t *testing.T) { 
+	tests := []struct {
+		input string
+		expectedIdentifier string
+		expectedValue interface{}
+	}{
+		{"x = 5;", "x", 5},
+		{"y = true;", "y", true},
+		{"foobar = y;", "foobar", "y"},
+		{"dog = dog + 5;", "dog", "dog + 5"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		assignment, ok := stmt.Expression.(*ast.TestAssignmentExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.AssignmentExpression. got=%T", stmt.Expression)
+		}
+
+		if assignment.Name.Value != tt.expectedIdentifier {
+			t.Errorf("assignment.Name.Value not '%s' got=%s", tt.expectedIdentifier, assignment.Name.Value)
+		}
+	}
+	
+	valueStr := assignment.Value.String()
+	var expectedValueStr string 
+
+	switch v := tt.expectedValue.(type) {
+	case int: 
+		expectedValueStr = fmt.Sprintf("%d", v)
+	case bool: 
+		expectedValueStr = fmt.Sprintf("%t", v)
+	case string:
+		expectedValueStr = v
+	}
+
+	if !strings.Contain(valueStr, expectedValueStr) {
+		t.Errorf("assignment.Value.String() not containing '%s'. got=%s",  expectedValueStr, valueStr)
+	}
+
+
+}
+
 func TestForLoopParsing(t *testing.T) {
 	tests := []struct {
 		input string

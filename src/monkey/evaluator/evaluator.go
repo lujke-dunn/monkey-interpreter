@@ -180,13 +180,9 @@ func evalForExpression(fe *ast.ForExpression, env *object.Environment) object.Ob
 		if rt == object.BREAK_OBJ {
 			break
 		}
-		if rt == object.CONTINUE_OBJ {
-			goto Update 
-		}
-	}
 
-	Update: 
-		if fe.Update != nil {
+	}
+	if fe.Update != nil {
 			updateResult := Eval(fe.Update, loopEnv)
 			if isError(updateResult) {
 				return updateResult
