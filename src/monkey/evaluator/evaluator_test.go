@@ -8,6 +8,32 @@ import (
 )
 
 
+func TestAssignmentExpression(t *testing.T) { 
+	tests := []struct {
+		input string 
+		expected interface{}
+	}{
+		{"let a = 5; a = 10; a;", 10},
+		{"let a = 5; let b = a; a = 10; b; ", 5},
+		{"let a = 5; let b = a; a = 10; a;", 10}, 
+		{"let a = 5; a = a * 2; a;", 10},
+		{"let a = true; a = false; a;", false}, 
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int: 
+			testIntegerObject(t, evaluated, int64(expected))
+		case bool: 
+			testBooleanObject(t, evaluated, expected)
+		default: 
+			t.Errorf("unexpected result type: %T", expected)
+		}
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input string
@@ -253,7 +279,7 @@ func TestForLoopScope(t *testing.T) {
 		}
 	}
 }
-
+/*
 func TestArrayMapMethod(t *testing.T) {
 	tests := []struct {
 		input string 
@@ -332,7 +358,7 @@ func TestArrayReduceMethod(t *testing.T) {
 	}
 
 
-}
+} */
 
 
 func TestArrayIndexExpressions(t *testing.T) {

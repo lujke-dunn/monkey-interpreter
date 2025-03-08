@@ -24,7 +24,7 @@ var precedences = map[token.TokenType]int {
 	token.EQ: EQUALS,
 	token.NOT_EQ: EQUALS,
 	token.LT: LESSGREATER,
-	token.ASSIGN: EQUALS,
+	//token.ASSIGN: EQUALS,
 	token.GT: LESSGREATER,
 	token.PLUS: SUM, 
 	token.MINUS: SUM, 
@@ -33,12 +33,14 @@ var precedences = map[token.TokenType]int {
 	token.LPAREN: CALL, 
 	token.LBRACKET: INDEX, 
 	token.DOT: CALL,
+	token.ASSIGN: ASSIGN, 
 }
 
 
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN // = 
 	EQUALS // == 
 	LESSGREATER // > or < 
 	SUM // +
@@ -65,6 +67,25 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) { // 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) parseAssignmentExpression(left ast.Expression) ast.Expression {
+	identifier, ok := left.(*ast.Identifier)
+	if !ok {
+		msg := fmt.Sprintf("expected identifier on left side of assignment, got %T", left)
+		p.errors = append(p.errors, msg)
+		return nil 
+	}
+
+	expression := &ast.AssignmentExpression { 
+		Token: p.curToken,
+		Name: identifier,
+	}
+
+	p.nextToken()
+	expression.Value = p.parseExpression(LOWEST)
+
+	return expression 
 }
 
 
@@ -122,7 +143,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.registerPrefix(token.WHILE, p.parseWhileExpression)
 	p.registerPrefix(token.FOR, p.parseForExpression)
-	p.registerInfix(token.ASSIGN, p.parseInfixExpression)
+	p.registerInfix(token.ASSIGN, p.parseAssignmentExpression)
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
