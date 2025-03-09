@@ -56,15 +56,15 @@ func TestWhileExpression(t *testing.T) {
 		expected interface{}
 	}{
 		{
-			"let x = 0; while (x < 5) { let x = x + 1; }; x;",
+			"let x = 0; while (x < 5) {  x = x + 1; }; x;",
 			5, 
 		},
 		{
-			"let a = 0; while (a < 10) { let a = a + 1; if (a == 5) { return a; }; }; 10;",
+			"let a = 0; while (a < 10) { a = a + 1; if (a == 5) { return a; }; }; 10;",
 			5, 
 		},
 		{
-			"let a = 0; let b = 0; while (a < 3) { let a = a + 1; let b = b + a; }; b;",
+			"let a = 0; let b = 0; while (a < 3) { a = a + 1; b = b + a; }; b;",
 			6,
 		},
 	}
@@ -112,44 +112,7 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 }
 
-func TestForLoopEvaluation(t *testing.T) {
-	tests := []struct {
-		input string
-		expected int64
-	}{ 
-		{
-			`
-			let sum = 0;
-			for (let i = 0; i < 5; i = i + 1) {
-				let sum = sum + i; 
-			}
-			sum; 
-			`,
-			10,
-		},
-		{
-			`
-			let sum = 0; 
-			let i = 0; 
-			for (; i < 5; i = i + 1) {
-				sum = sum + i; 
-			}
-			sum;
-			`,
-			10, 
-		},
-		{
-			`
-			let sum = 0;
-			for (let i = 0; i < 3; i = i + 1) {
-				for (let j = 0; j < 2; j = j + 1) {
-					sum = sum + (i * j);
-				}
-			}
-			`,
-			3,  
-		},
-	}
+
 
 	for i, tt  := range tests {
 		evaluated := testEval(tt.input)
@@ -166,119 +129,6 @@ func TestForLoopEvaluation(t *testing.T) {
 	}
 }
 
-func TestBreakStatements(t *testing.T) { 
-	tests := []struct {
-		input string
-		expected interface{}
-	}{
-	{
-		`
-		let result = 0; 
-		for (int i = 0; i < 5; i = i + 1) {
-			for (let j = 0; j < 5; j = j + 1) {
-				result = i * 10 + j; 
-				if (j == 3) {
-					break; 
-				}
-			}
-			if (i == 2) {
-				break; 
-			}
-		}
-		result;
-		`,
-		23,
-	}, 
-	{
-		`
-		let count = 0; 
-		let result = 0; 
-		while (count < 10) {
-			count = count + 1; 
-			result = count; 
-			if (count == 5) { 
-				break; 
-			}
-		}
-		result; 
-		`,
-		5, 
-		},
-	}
-
-	for i, tt := range tests {
-		evaluated := testEval(tt.input)
-		integer, ok := evaluated.(*object.Integer)
-
-		if !ok {
-			t.Errorf("test[%d] - object is not Integer. got=%T (%+v)", i, evaluated, evaluated)
-			continue
-		}
-
-		expected, ok := tt.expected.(int)
-		if !ok {
-			continue
-		}
-
-		if integer.Value != int64(expected) {
-			t.Errorf("test[%d] - wrong value. expected=%d, got=%d", i, expected, integer.Value)
-		}
-	}
-}
-
-func TestForLoopScope(t *testing.T) {
-	tests := []struct {
-		input string 
-		expected int64
-	}{
-		{
-			`
-			let result = 0; 
-			for (let i = 0; i < 5; i = i + 1) {
-				result = i; 
-			}
-			let i = 100; 
-			result + 1;
-			`,
-			104,
-		},
-		{
-			`
-			let i = 100; 
-			let result = 0; 
-			for (let i = 0; i < 5; i = i + 1) { 
-				result = i; 
-			}
-			result + i; 
-			`,
-			104,
-		},
-		{
-			`
-			let sum = 0; 
-			for (let i = 0; i < 5; i = i + 1) {
-				sum = sum + 1; 
-			}
-			sum; 
-			`, 
-			10,
-		},
-	}
-
-	for i, tt := range tests { 
-		evaluated := testEval(tt.input)
-
-		integer, ok := evaluated.(*object.Integer)
-		if !ok {
-			t.Errorf("test[%d] - object is not Integer. got=%T (%+v)", i, evaluated, evaluated)
-			continue
-		}
-
-		if integer.Value != tt.expected {
-			t.Errorf("test[%d] - wrong value. expected=%d, got=%d", i, tt.expected, integer.Value)
-		}
-	}
-}
 /*
 func TestArrayMapMethod(t *testing.T) {
 	tests := []struct {

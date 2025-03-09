@@ -61,16 +61,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		right := Eval(node.Right, env)
 		return evalPrefixExpression(node.Operator, right)
 	case *ast.AssignmentExpression: 
-		val := Eval(node.Value, env)
-		if isError(val) {
-			return val
-		}
-
-		if _, ok := env.Get(node.Name.Value); !ok {
-			return newError("identifier not found: " + node.Name.Value)
-		}
-		env.Set(node.Name.Value, val)
-		return val 
+		return evalAssignmentExpression(node, env)
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -111,73 +102,29 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	
 	case *ast.WhileExpression:
 		return evalWhileExpression(node, env)
-	case *ast.ForExpression: 
-		return evalForExpression(node, env)
+
 	case *ast.BreakStatement:
-		return BREAK
+		return &object.Break{}
 	case *ast.ContinueStatement:
-		return CONTINUE
+		return &object.Continue{}
 	}
 	return nil
 }
 
-func evalForExpression(fe *ast.ForExpression, env *object.Environment) object.Object {
-	loopEnv := object.NewEnclosedEnvironment(env)
 
-	if fe.Init != nil {
-		switch init := fe.Init.(type) { 
-			case *ast.LetStatement:
-				val := Eval(init.Value, loopEnv)
-				if isError(val) {
-					return val
-				}
-
-				loopEnv.Set(init.Name.Value, val)
-			case *ast.ExpressionStatement: 
-				val := Eval(init.Expression, loopEnv)
-				if isError(val) {
-					return val
-				}
-		}
+func evalAssignmentExpression(ae *ast.AssignmentExpression, env *object.Environment) object.Object {
+	val := Eval(ae.Value, env)
+	if isError(val) {
+		return val 
 	}
 
-	for {
-		if fe.Condition != nil {
-			condition := Eval(fe.Condition, loopEnv)
-			if isError(condition) {
-				return condition
-			}
+	name := ae.Name.Value
+	env.Set(name, val)
 
-			if !isTruthy(condition) {
-				break
-			}
-		}
-	
-
-	result := Eval(fe.Body, loopEnv)
-	if isError(result) {
-		return result
-	}
-
-	if result != nil {
-		rt := result.Type()
-		if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
-			return result
-		}
-		if rt == object.BREAK_OBJ {
-			break
-		}
-
-	}
-	if fe.Update != nil {
-			updateResult := Eval(fe.Update, loopEnv)
-			if isError(updateResult) {
-				return updateResult
-			}
-		}
-	}
-		return NULL
+	return val
 }
+
+
 
 func evalWhileExpression(node *ast.WhileExpression, env *object.Environment) object.Object {
 	var result object.Object = NULL
