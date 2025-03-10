@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+	"APE/evaluator"
+	"APE/lexer"
+	"APE/object"
+	"APE/parser"
 )
 
 const PROMPT = ">>"
