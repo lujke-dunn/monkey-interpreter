@@ -6,13 +6,12 @@ import (
 	"APE/object"
 )
 
-
-// boolean values  
-
 var (
 	NULL  = &object.Null{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
+	BREAK = &object.Break{}
+	CONTINUE = &object.Continue{}
 )
 
 // switches between availale statments in order to intepret 
@@ -59,6 +58,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		return evalPrefixExpression(node.Operator, right)
+	case *ast.AssignmentExpression: 
+		return evalAssignmentExpression(node, env)
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
 		if isError(left) {
@@ -89,105 +90,158 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
-// For the MethodCallExpression case, use this ultra-minimal implementation:
+	case *ast.MethodCallExpression:
+		o := Eval(node.Object, env)
+		if isError(o) {
+			return o
+		}
+		a := evalExpressions(node.Arguments, env)
+		if len(a) > 0 && isError(a[0]) {
+			return a[0]
+		}
 
-case *ast.MethodCallExpression:
-	o := Eval(node.Object, env)
-	if isError(o) {
-		return o
-	}
-	a := evalExpressions(node.Arguments, env)
-	if len(a) > 0 && isError(a[0]) {
-		return a[0]
-	}
-
-	// Here we ONLY check type using a type switch
-	switch arr := o.(type) {
-	case *object.Array:
-		// It's an array
-		if node.Method == "map" {
-			// Handle map
-			if len(a) != 1 {
-				return newError("wrong number of arguments for map")
-			}
-			
-			fn, ok := a[0].(*object.Function)
-			if !ok {
-				return newError("argument to map must be a function")
-			}
-			
-			result := []object.Object{}
-			for _, e := range arr.Elements {
-				val := applyFunction(fn, []object.Object{e})
-				if isError(val) {
-					return val
-				}
-				result = append(result, val)
-			}
-			
-			return &object.Array{Elements: result}
-		} else if node.Method == "filter" {
-			// Handle filter
-			if len(a) != 1 {
-				return newError("wrong number of arguments for filter")
-			}
-			
-			fn, ok := a[0].(*object.Function)
-			if !ok {
-				return newError("argument to filter must be a function")
-			}
-			
-			result := []object.Object{}
-			for _, e := range arr.Elements {
-				condition := applyFunction(fn, []object.Object{e})
-				if isError(condition) {
-					return condition
+		// Here we ONLY check type using a type switch
+		switch arr := o.(type) {
+		case *object.Array:
+			// It's an array
+			if node.Method == "map" {
+				// Handle map
+				if len(a) != 1 {
+					return newError("wrong number of arguments for map")
 				}
 				
-				if isTruthy(condition) {
-					result = append(result, e)
+				fn, ok := a[0].(*object.Function)
+				if !ok {
+					return newError("argument to map must be a function")
 				}
-			}
-			
-			return &object.Array{Elements: result}
-		} else if node.Method == "reduce" {
-			// Handle reduce
-			if len(a) != 2 {
-				return newError("wrong number of arguments for reduce")
-			}
-			
-			fn, ok := a[0].(*object.Function)
-			if !ok {
-				return newError("first argument to reduce must be a function")
-			}
-			
-			accum := a[1]
-			for _, e := range arr.Elements {
-				accum = applyFunction(fn, []object.Object{accum, e})
-				if isError(accum) {
-					return accum
+				
+				result := []object.Object{}
+				for _, e := range arr.Elements {
+					val := applyFunction(fn, []object.Object{e})
+					if isError(val) {
+						return val
+					}
+					result = append(result, val)
 				}
+				
+				return &object.Array{Elements: result}
+			} else if node.Method == "filter" {
+				// Handle filter
+				if len(a) != 1 {
+					return newError("wrong number of arguments for filter")
+				}
+				
+				fn, ok := a[0].(*object.Function)
+				if !ok {
+					return newError("argument to filter must be a function")
+				}
+				
+				result := []object.Object{}
+				for _, e := range arr.Elements {
+					condition := applyFunction(fn, []object.Object{e})
+					if isError(condition) {
+						return condition
+					}
+					
+					if isTruthy(condition) {
+						result = append(result, e)
+					}
+				}
+				
+				return &object.Array{Elements: result}
+			} else if node.Method == "reduce" {
+				// Handle reduce
+				if len(a) != 2 {
+					return newError("wrong number of arguments for reduce")
+				}
+				
+				fn, ok := a[0].(*object.Function)
+				if !ok {
+					return newError("first argument to reduce must be a function")
+				}
+				
+				accum := a[1]
+				for _, e := range arr.Elements {
+					accum = applyFunction(fn, []object.Object{accum, e})
+					if isError(accum) {
+						return accum
+					}
+				}
+				
+				return accum
+			} else {
+				return newError("unknown method %s", node.Method)
 			}
-			
-			return accum
-		} else {
-			return newError("unknown method %s", node.Method)
+		default:
+			// Not an array
+			return newError("no methods for this type")
 		}
-	default:
-		// Not an array
-		return newError("no methods for this type")
-	}
 	case *ast.ArrayLiteral: 
 		elements := evalExpressions(node.Elements, env)
 		if len(elements) == 1 && isError(elements[0]) {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
-		}
+	
+	case *ast.WhileExpression:
+		return evalWhileExpression(node, env)
+
+	case *ast.BreakStatement:
+		return &object.Break{}
+	case *ast.ContinueStatement:
+		return &object.Continue{}
 	}
 	return nil
 }
 
+func evalAssignmentExpression(ae *ast.AssignmentExpression, env *object.Environment) object.Object {
+	val := Eval(ae.Value, env)
+	if isError(val) {
+		return val 
+	}
+
+	name := ae.Name.Value
+	env.Set(name, val)
+
+	return val
+}
+
+func evalWhileExpression(node *ast.WhileExpression, env *object.Environment) object.Object {
+	var result object.Object = NULL
+
+	condition := Eval(node.Condition, env)
+	if isError(condition) {
+		return condition 
+	}
+
+	for isTruthy(condition) {
+		result = Eval(node.Body, env)
+
+		if result != nil {
+			rt := result.Type()
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+				return result
+			}
+			if rt == object.BREAK_OBJ {
+				return NULL
+			}
+			if rt == object.CONTINUE_OBJ {
+				condition = Eval(node.Condition, env)
+				if isError(condition) {
+					return condition
+				}
+				continue
+			}
+		}
+
+		condition = Eval(node.Condition, env)
+		if isError(condition) {
+			return condition
+		}
+	}
+	
+	return result 
+}
 
 func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {
 	pairs := make(map[object.HashKey]object.HashPair)
@@ -483,7 +537,7 @@ func evalBlockStatement(statements *ast.BlockStatement, env *object.Environment)
 
 		if result != nil {
 			rt := result.Type()
-			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ {
+			if rt == object.RETURN_VALUE_OBJ || rt == object.ERROR_OBJ || rt == object.BREAK_OBJ || rt == object.CONTINUE_OBJ {
 				return result
 			}
 		}

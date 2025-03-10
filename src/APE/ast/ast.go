@@ -7,6 +7,90 @@ import (
 )
 
 
+type AssignmentExpression struct {
+	Token token.Token
+	Name *Identifier
+	Value Expression 
+}
+
+func (ae *AssignmentExpression) expressionNode() {}
+
+func (ae *AssignmentExpression) TokenLiteral() string { return ae.Token.Literal }
+
+func (ae *AssignmentExpression) String() string {
+	var out bytes.Buffer 
+	
+	out.WriteString("(")
+	out.WriteString(ae.Name.String())
+	out.WriteString(" = ")
+	out.WriteString(ae.Value.String())
+	out.WriteString(")")
+	return out.String()
+}
+
+
+type BreakStatement struct {
+	Token token.Token
+}
+
+func (bs *BreakStatement) statementNode() {}
+
+func (bs *BreakStatement) TokenLiteral() string { return bs.Token.Literal }
+
+func (bs *BreakStatement) String() string { return bs.TokenLiteral() + ";"}
+
+type ContinueStatement struct {
+	Token token.Token
+}
+
+func (cs *ContinueStatement) statementNode() {}
+
+func (cs *ContinueStatement) TokenLiteral() string { return cs.Token.Literal }
+
+func (cs *ContinueStatement) String() string { return cs.Token.Literal }
+
+
+type ForExpression struct {
+	Token token.Token
+	Init Statement
+	Condition Expression
+	Update Expression 
+	Body *BlockStatement
+}
+
+func (fe *ForExpression) expressionNode() {}
+
+func (fe *ForExpression) TokenLiteral() string { return fe.Token.Literal }
+
+func (fe *ForExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("for")
+	out.WriteString(" (")
+
+	if fe.Init != nil {
+		out.WriteString(fe.Init.String())
+	}
+
+	out.WriteString("; ")
+
+	if fe.Condition != nil {
+		out.WriteString(fe.Condition.String())
+	}
+	
+	out.WriteString("; ")
+
+	if fe.Update != nil {
+		out.WriteString(fe.Update.String())
+	}
+
+	out.WriteString(") ")
+	out.WriteString(fe.Body.String())
+
+	return out.String()
+}
+
+
 type StringLiteral struct { 
 	Token token.Token
 	Value string
@@ -17,6 +101,28 @@ func (sl *StringLiteral) expressionNode() { }
 func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 
 func (sl *StringLiteral) String() string { return sl.Token.Literal }
+
+
+type WhileExpression struct {
+	Token token.Token
+	Condition Expression
+	Body *BlockStatement
+}
+
+func (we *WhileExpression) expressionNode() {}
+
+func (we *WhileExpression) TokenLiteral() string { return we.Token.Literal }
+
+func (we *WhileExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("while")
+	out.WriteString(we.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(we.Body.String())
+
+	return out.String()
+}
 
 
 type LetStatement struct { 
@@ -33,7 +139,7 @@ func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
 func (ls *LetStatement) String() string { // This is writing and retrieving the total let statement expression here 
 	var out bytes.Buffer
 
-	out.WriteString(ls.TokenLiteral() + "  ")
+	out.WriteString(ls.TokenLiteral() + " ")
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
 	

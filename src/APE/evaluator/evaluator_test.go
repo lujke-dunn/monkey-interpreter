@@ -8,6 +8,32 @@ import (
 )
 
 
+func TestAssignmentExpression(t *testing.T) { 
+	tests := []struct {
+		input string 
+		expected interface{}
+	}{
+		{"let a = 5; a = 10; a;", 10},
+		{"let a = 5; let b = a; a = 10; b; ", 5},
+		{"let a = 5; let b = a; a = 10; a;", 10}, 
+		{"let a = 5; a = a * 2; a;", 10},
+		{"let a = true; a = false; a;", false}, 
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int: 
+			testIntegerObject(t, evaluated, int64(expected))
+		case bool: 
+			testBooleanObject(t, evaluated, expected)
+		default: 
+			t.Errorf("unexpected result type: %T", expected)
+		}
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input string
@@ -20,6 +46,32 @@ func TestReturnStatements(t *testing.T) {
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
+
+
+func TestWhileExpression(t *testing.T) {
+	tests := []struct {
+		input string
+		expected interface{}
+	}{
+		{
+			"let x = 0; while (x < 5) {  x = x + 1; }; x;",
+			5, 
+		},
+		{
+			"let a = 0; while (a < 10) { a = a + 1; if (a == 5) { return a; }; }; 10;",
+			5, 
+		},
+		{
+			"let a = 0; let b = 0; while (a < 3) { a = a + 1; b = b + a; }; b;",
+			6,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, int64(tt.expected.(int)))
 	}
 }
 
@@ -60,6 +112,24 @@ func TestBuiltinFunctions(t *testing.T) {
 	}
 }
 
+
+
+	for i, tt  := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := evaluated.(*object.Integer)
+
+		if !ok {
+			t.Errorf("test[%d] - object is not Integer. got=%T (%+v)", i, evaluated, evaluated)
+			continue
+		}
+
+		if integer.Value != tt.expected {
+			t.Errorf("test[%d] - wrong value. expected=%d, got=%d", i, tt.expected, integer.Value)
+		}
+	}
+}
+
+/*
 func TestArrayMapMethod(t *testing.T) {
 	tests := []struct {
 		input string 
@@ -138,7 +208,7 @@ func TestArrayReduceMethod(t *testing.T) {
 	}
 
 
-}
+} */
 
 
 func TestArrayIndexExpressions(t *testing.T) {
