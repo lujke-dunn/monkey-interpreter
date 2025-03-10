@@ -4,10 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+
+=======
+	"strings"
+	"APE/evaluator"
+	"APE/lexer"
+	"APE/object"
+	"APE/parser"
+>>>>>>> 02d6d68 (changed name to APE and added the ability to run files):src/APE/repl/repl.go
 )
 
 const PROMPT = ">>"
