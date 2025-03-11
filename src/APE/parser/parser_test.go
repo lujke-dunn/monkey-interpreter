@@ -64,6 +64,90 @@ func TestAssignmentExpression(t *testing.T) {
  }
 }
 
+func TestTypedLetStatements(t *testing.T) {
+	tests := []struct {
+		input string 
+		expectedIdentifier string
+		expectedType string
+		expectedValue interface{}
+	}{
+		{"let x: int = 7;", "x", "int", 7}, 
+		{"let isDog: bool = true;", "isDog", "bool", true}, 
+		{"let dog: string = \"dog\";", "dog", "string", "dog"},
+		{"let c: char = 'c'; ", "c", "char", "c"}, 
+		{"let nums: array<int> = [1, 2, 3];", "nums", "array<int>", "[1, 2, 3]"}, 
+		{"let dictonary: hash<string, int> = {\"a\": 1}", "dictonary", "hash<string, int>", "{\"a\":1}"}, 
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.TypedLetStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.TypedLetStatement. got=%T", program.Statements[0])
+		}
+
+		if stmt.Name.Value != tt.expectedIdentifer {
+			t.Errorf("stmt.Name.Value not '%s'. got=%s", tt.expectedIdentifier, stmt.Name.Value)
+		}
+
+		if stmt.Type.String() != tt.expectedType {
+			t.Errorf("stmt.Type.String() not '%s'. got=%s", tt.expectedType, stmt.Type.String())
+		}
+
+		switch expected := tt.expectedValue.(type) {
+			case int: 
+				intLiteral, ok := stmt.Value.(*ast.IntegerLiteral)
+				if !ok {
+					t.Errorf("stmt.Value not *ast.IntegerLiteral. got=%T", stmt.Value)
+					continue
+				}
+				if intLiteral.Value != int64(expected) {
+					t.Errorf("intLiteral.Value not %d. got=%d", expected, intLiteral.Value)
+				}
+			case bool: 
+				boolLiteral, ok := stmt.Value.(*ast.Boolean)
+				if !ok {
+					t.Errorf("stmt.Value not *ast.Boolean got=%T", stmt.Value)
+				}
+
+				if boolLiteral.Value != expected {
+					t.Errorf("boolLiteral.Value not %t. got=%t", expected, boolLiteral.Value)
+				}
+			case string: 
+				if tt.expectedType == "string" {
+					stringLiteral, ok := stmt.Value.(*ast.StringLiteral)
+					if !ok {
+						t.Errorf("stmt.Value not *ast.StringLiteral. got=%T", stmt.Value)
+						continue
+					}
+					if stringLiteral.Value != expected {
+						t.Errorf("stringLiteral.Value is not %s. got=%s", expected, stringLiteral.Value)
+					}
+				}
+			case rune: 
+				charLiteral, ok := stmt.Value.(*ast.CharLiteral)
+				if !ok { 
+					t.Errorf("stmt.Value not *ast.CharLiteral. got=%T", stmt.Value)
+					continue
+				}
+				if charLiteral.Value != expected {
+					t.Errorf("charLiteral.Value not %c. got=%c", expected, charLiteral.Value)
+				}
+		}
+	}
+}
+
+
+
 func TestForLoopParsing(t *testing.T) {
 	tests := []struct {
 		input string
