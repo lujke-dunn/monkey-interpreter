@@ -1,10 +1,10 @@
-# Monkey Programming Language Interpreter
+# APELang Interpreter
 
 An interpreter of the Monkey programming language based off of Thorsten Ball's Book "Writing an Interpreter in Go".
 
-## About Monkey
+## About APELang
 
-Monkey is a programming language designed for learning about interpreter design. This implementation follows the book with some custom enhancements.
+APELang is a programming language designed for learning about interpreter design. This implementation follows the book with some custom enhancements.
 
 ### Key Features
 
@@ -22,7 +22,7 @@ Monkey is a programming language designed for learning about interpreter design.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/monkey-language.git
+git clone https://github.com/yourusername/APELang.git
 cd monkey-language
 go build -o monkey ./src/monkey
 ```
@@ -32,7 +32,7 @@ go build -o monkey ./src/monkey
 Run the REPL (Read-Eval-Print-Loop) to interactively use the Monkey language:
 
 ```bash
-./monkey
+./APELang
 ```
 
 ## Language Examples
